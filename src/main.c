@@ -6,6 +6,7 @@
 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
 
 void sendData(const eap_package* pack)
 {
@@ -20,8 +21,8 @@ void sendData(const eap_package* pack)
 	memcpy(&buf[2], &size, 2);
 	size = ntohs(size);
 	memcpy(&buf[4], pack->data, size - 4);
-	uint8_t i;
-	for(i = 0; i < size; i++)
+
+	for(uint8_t i = 0; i < size; i++)
 		printf("%02x", buf[i]);
 	printf("\n");
 
