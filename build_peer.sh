@@ -3,7 +3,7 @@
 mkdir tmp
 
 cd tmp
-cmake ../src
+cmake ../peer
 make
 
 mv eap_peer.elf ../
