@@ -18,10 +18,11 @@ int eapToData(const eap_package* pack, uint8_t* data)
 
 int dataToEap(const uint8_t* data, const int size, eap_package* pack)
 {
+	if(size < 4) return -2;
 	uint16_t length;
 	memcpy(&length, &data[2], 2);
 	length = ntohs(length);
-	if(length != size) return -1;
+	if(length > size) return -1;
 	pack = realloc(pack, sizeof(eap_package));
 	memcpy(pack, data, 2);
 	pack->length = length;
