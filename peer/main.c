@@ -14,16 +14,9 @@ void sendData(const eap_package* pack)
 	printf("EAP package identifier = %02x\n", pack->identifier);
 	printf("EAP package length = %04x\n", pack->length);
 
-	uint16_t size = pack->length;
-	uint8_t *buf = malloc(size);
-	memcpy(buf, pack, 2);
-	size = htons(size);
-	memcpy(&buf[2], &size, 2);
-	size = ntohs(size);
-	memcpy(&buf[4], pack->data, size - 4);
-
-	for(uint8_t i = 0; i < size; i++)
-		printf("%02x", buf[i]);
+	uint8_t* buf = malloc(0);
+	int size = eapToData(pack, buf);
+	for(uint8_t i = 0; i < size; printf("%02x", buf[i++]));
 	printf("\n");
 
 	int sock = socket(AF_INET, SOCK_STREAM, 0);

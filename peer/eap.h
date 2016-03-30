@@ -19,4 +19,6 @@ typedef struct
 	uint8_t *data;
 }eap_package;
 
+int eapToData(const eap_package* pack, uint8_t* data);
+
 #endif//__EAP_H__
