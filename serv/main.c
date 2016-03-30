@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 
+#include "eap.h"
+
 int main()
 {
 	printf("I will became a EAP server\n");
@@ -34,6 +36,17 @@ int main()
 		int bytes_read = recv(sock, buf, 1024, 0);
 		for(int i = 0; i < bytes_read; printf("%02x", buf[i++]));
 		printf("\n");
+		eap_package* pack = malloc(0);
+		if(dataToEap(&buf[0], bytes_read, pack) < 0)
+			printf("data is not EAP package\n");
+		else
+		{
+			printf("EAP package code = %02x\n", pack->code);
+			printf("EAP package identifier = %02x\n", pack->identifier);
+			printf("EAP package length = %04x\n", pack->length);
+			for(int i = 0; i < pack->length - 4; printf("%02x", pack->data[i++]));
+			printf("\n");
+		}
 		close(sock);
 	}
 

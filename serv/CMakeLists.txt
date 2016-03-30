@@ -6,4 +6,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c11")
 
 set(SOURCE_ELF main.c)
 
-add_executable(eap_server.elf ${SOURCE_ELF}) 
+include_directories(../libs/eap)
+
+add_executable(eap_server.elf ${SOURCE_ELF})
+
+add_library(eap STATIC IMPORTED)
+set_property(TARGET eap PROPERTY IMPORTED_LOCATION ../libs/libeap.a)
+
+target_link_libraries(eap_server.elf eap)
