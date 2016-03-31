@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-
+#include <sys/time.h>
 #include <stdint.h>
 
 #include "eap.h"
@@ -32,8 +32,22 @@ int main()
 	{
 		int sock = accept(listener, NULL, NULL);
 		if(sock < 0) {printf("Could not get socket\n"); return -3;}
+
+		struct timeval timeout;
+		timeout.tv_sec = 10;
+		timeout.tv_usec = 0;
+		if(setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(struct timeval)) < 0)
+		{
+			printf("Could not set up timeout\n");
+		}
+
 		uint8_t buf[1024];
 		int bytes_read = recv(sock, buf, 1024, 0);
+		if(bytes_read <= 0)
+		{
+			printf("Time out!\n");
+			break;
+		}
 		for(int i = 0; i < bytes_read; printf("%02x", buf[i++]));
 		printf("\n");
 		eap_package* pack = malloc(0);
