@@ -1,54 +1,51 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "eap.h"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
 
-#include <stdint.h>
-
-#include "eap.h"
-
-int main()
+void sendData(const eap_package* pack)
 {
-	printf("I will became a EAP server\n");
+	printf("EAP package code = %02x\n", pack->code);
+	printf("EAP package identifier = %02x\n", pack->identifier);
+	printf("EAP package length = %04x\n", pack->length);
 
-	int listener = socket(AF_INET, SOCK_STREAM, 0);
-	if(listener < 0) {printf("Could not create socket\n"); return -1;}
+	uint8_t* buf = malloc(0);
+	int size = eapToData(pack, buf);
+	for(uint8_t i = 0; i < size; printf("%02x", buf[i++]));
+	printf("\n");
+
+	int sock = socket(AF_INET, SOCK_STREAM, 0);
+	if(sock < 0) {printf("Could not create socket\n"); return;}
 
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(9090);
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	if(bind(listener, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	if(connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
 	{
-		printf("Could not bind socket\n");
-		return -2;
+		printf("Could not connect to hostn\n");
+		return;
 	}
+	send(sock, buf, size, 0);
+	free(buf);
+	close(sock);
+}
 
-	listen(listener, 1);
+int main()
+{
+	printf("I will became a EAP server\n");
+	eap_package eapPack;
+	eapPack.code = EAP_REQUEST;
+	eapPack.identifier = 0xee;
+	eapPack.length = 8;
+	eapPack.data = malloc(4);
+	memset(eapPack.data, 0xdd, 4);
 
-	while(1)
-	{
-		int sock = accept(listener, NULL, NULL);
-		if(sock < 0) {printf("Could not get socket\n"); return -3;}
-		uint8_t buf[1024];
-		int bytes_read = recv(sock, buf, 1024, 0);
-		for(int i = 0; i < bytes_read; printf("%02x", buf[i++]));
-		printf("\n");
-		eap_package* pack = malloc(0);
-		if(dataToEap(&buf[0], bytes_read, pack) < 0)
-			printf("data is not EAP package\n");
-		else
-		{
-			printf("EAP package code = %02x\n", pack->code);
-			printf("EAP package identifier = %02x\n", pack->identifier);
-			printf("EAP package length = %04x\n", pack->length);
-			for(int i = 0; i < pack->length - 4; printf("%02x", pack->data[i++]));
-			printf("\n");
-		}
-		close(sock);
-	}
-
+	sendData(&eapPack);
 	return 0;
 }
