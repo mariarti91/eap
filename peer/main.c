@@ -42,24 +42,28 @@ int main()
 		}
 
 		uint8_t buf[1024];
-		int bytes_read = recv(sock, buf, 1024, 0);
-		if(bytes_read <= 0)
+		while(1)
 		{
-			printf("Time out!\n");
-			break;
-		}
-		for(int i = 0; i < bytes_read; printf("%02x", buf[i++]));
-		printf("\n");
-		eap_package* pack = malloc(0);
-		if(dataToEap(&buf[0], bytes_read, pack) < 0)
-			printf("data is not EAP package\n");
-		else
-		{
-			printf("EAP package code = %02x\n", pack->code);
-			printf("EAP package identifier = %02x\n", pack->identifier);
-			printf("EAP package length = %04x\n", pack->length);
-			for(int i = 0; i < pack->length - 4; printf("%02x", pack->data[i++]));
+			int bytes_read = recv(sock, buf, 1024, 0);
+			if(bytes_read <= 0)
+			{
+				printf("Time out!\n");
+				break;
+			}
+			for(int i = 0; i < bytes_read; printf("%02x", buf[i++]));
 			printf("\n");
+			eap_package* pack = malloc(0);
+			if(dataToEap(&buf[0], bytes_read, pack) < 0)
+				printf("data is not EAP package\n");
+			else
+			{
+				printf("EAP package code = %02x\n", pack->code);
+				printf("EAP package identifier = %02x\n", pack->identifier);
+				printf("EAP package length = %04x\n", pack->length);
+				for(int i = 0; i < pack->length - 4; printf("%02x", pack->data[i++]));
+				printf("\n");
+			}
+			send(sock, &buf[0], bytes_read, 0);
 		}
 		close(sock);
 	}
