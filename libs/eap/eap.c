@@ -6,6 +6,8 @@
 
 #include "lower.h"
 
+#include <stdio.h>
+
 int eapToData(const eap_package* pack, uint8_t* data)
 {
 	uint16_t size = pack->length;
@@ -35,9 +37,28 @@ int dataToEap(const uint8_t* data, const int size, eap_package* pack)
 
 eap_package* eap_exchange(const eap_package* const pack)
 {
+	uint8_t exchange_id = pack->identifier;
 	initLower();
-	uint8_t *data = malloc(0);
-	int size = eapToData(pack, data);
-	sendData(data, size);
-	return pack;
+	uint8_t *requ_data = malloc(0);
+	int request_size = eapToData(pack, requ_data);
+
+	uint8_t *resp_data = malloc(0);
+	eap_package *response = malloc(0);
+	
+	do
+	{
+		sendData(requ_data, request_size);
+		int response_size = getData(resp_data);
+		if(response_size < 0) continue;
+
+		if(dataToEap(resp_data, response_size, response) < 0) continue;
+
+		if(response->identifier != exchange_id) continue;
+
+		break;
+	}
+	while(1);
+
+	free(requ_data);
+	return response;
 }
