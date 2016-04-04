@@ -20,6 +20,15 @@ int main()
 	memset(eapPack.data, 0xdd, 4);
 
 	eap_package* response = eap_exchange(&eapPack);
+
+	printf("Response code = %02x\n", response->code);
+	printf("Response identifier = %02x\n", response->identifier);
+	printf("Response package length = %04x\n", response->length);
+	printf("Response payload: ");
+	for(int i = 0; i < response->length - 4; printf("%02x", response->data[i++]));
+	printf("\n");
 	
+	free(response);
+
 	return 0;
 }
