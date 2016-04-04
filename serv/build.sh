@@ -3,10 +3,10 @@
 mkdir tmp
 
 cd tmp
-cmake ../serv
+cmake ../
 make
 
-mv eap_server.elf ../
+mv eap_server.elf ../..
 
 cd ..
 rm -rf tmp
