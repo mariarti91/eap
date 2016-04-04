@@ -28,7 +28,7 @@ int initLower()
 
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
-	addr.sin_port = htonl(9090);
+	addr.sin_port = htons(9090);
 	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
 	if(connect(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
