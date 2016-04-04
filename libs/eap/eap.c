@@ -4,6 +4,8 @@
 #include <string.h>
 #include <netinet/in.h>
 
+#include "lower.h"
+
 int eapToData(const eap_package* pack, uint8_t* data)
 {
 	uint16_t size = pack->length;
@@ -29,4 +31,13 @@ int dataToEap(const uint8_t* data, const int size, eap_package* pack)
 	pack->data = malloc(length - 4);
 	memcpy(pack->data, &data[4], length - 4);
 	return 0;
+}
+
+eap_package* eap_exchange(const eap_package* const pack)
+{
+	initLower();
+	uint8_t *data = malloc(0);
+	int size = eapToData(pack, data);
+	sendData(data, size);
+	return pack;
 }

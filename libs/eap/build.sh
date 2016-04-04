@@ -3,10 +3,10 @@
 mkdir tmp
 
 cd tmp
-cmake ../eap
+cmake ../
 make
 
-mv libeap.a ../
+mv libeap.a ../../
 
 cd ..
 rm -rf tmp

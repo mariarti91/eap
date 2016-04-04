@@ -23,4 +23,6 @@ int eapToData(const eap_package* pack, uint8_t* data);
 
 int dataToEap(const uint8_t* data, const int size, eap_package* pack);
 
+eap_package* eap_exchange(const eap_package* const pack);
+
 #endif//__EAP_H__
