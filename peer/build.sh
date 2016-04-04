@@ -3,10 +3,10 @@
 mkdir tmp
 
 cd tmp
-cmake ../peer
+cmake ../
 make
 
-mv eap_peer.elf ../
+mv eap_peer.elf ../..
 
 cd ..
 rm -rf tmp

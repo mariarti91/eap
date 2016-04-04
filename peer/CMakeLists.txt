@@ -11,6 +11,9 @@ include_directories(../libs/eap)
 add_executable(eap_peer.elf ${SOURCE_ELF})
 
 add_library(eap STATIC IMPORTED)
-set_property(TARGET eap PROPERTY IMPORTED_LOCATION ../libs/libeap.a)
+set_property(TARGET eap PROPERTY IMPORTED_LOCATION ../../libs/libeap.a)
 
-target_link_libraries(eap_peer.elf eap)
+add_library(lower STATIC IMPORTED)
+set_property(TARGET lower PROPERTY IMPORTED_LOCATION ../../libs/liblower.a)
+
+target_link_libraries(eap_peer.elf eap lower)
