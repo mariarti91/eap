@@ -12,4 +12,10 @@ void sendData(const uint8_t* const data, const int size);
 
 int getData(uint8_t* data);
 
+int startListener(const int port);
+
+int waitingForConnection();
+
+int closeConnection();
+
 #endif//__LOWER_H__
