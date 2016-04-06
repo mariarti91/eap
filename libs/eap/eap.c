@@ -62,3 +62,25 @@ eap_package* eap_exchange(const eap_package* const pack)
 	free(requ_data);
 	return response;
 }
+
+eap_package* getEapPackage()
+{
+	waitingForConnection();
+	uint8_t *req_data = malloc(0);
+	eap_package *request = malloc(0);
+
+	do
+	{
+		int req_size = getData(req_data);
+
+		if(req_size < 0) continue;
+
+		if(dataToEap(req_data, req_size, request) < 0 ) continue;
+
+		break;
+	}
+	while(1);
+	closeConnection();
+	free(req_data);
+	return request;
+}
