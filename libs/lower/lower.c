@@ -29,6 +29,7 @@ int startListener(const int port)
 		printf("Could not bind socket\n");
 		return -2;
 	}
+	listen(listener, 1);
 	return 0;
 }
 
@@ -43,7 +44,7 @@ int waitingForConnection()
 	sock = accept(listener, NULL, NULL);
 	if(sock < 0)
 	{
-		printf("Could not create socket\n");
+		printf("Could not get socket\n");
 		return -1;
 	}
 
