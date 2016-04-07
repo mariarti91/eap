@@ -19,7 +19,7 @@ int main()
 	eapPack.data = malloc(4);
 	memset(eapPack.data, 0xdd, 4);
 
-	eap_package* response = eap_exchange(&eapPack);
+	eap_package* response = eapExchange(&eapPack);
 
 	printf("Response code = %02x\n", response->code);
 	printf("Response identifier = %02x\n", response->identifier);

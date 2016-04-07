@@ -35,7 +35,7 @@ int dataToEap(const uint8_t* data, const int size, eap_package* pack)
 	return 0;
 }
 
-eap_package* eap_exchange(const eap_package* const pack)
+eap_package* eapExchange(const eap_package* const pack)
 {
 	uint8_t exchange_id = pack->identifier;
 	initLower();
