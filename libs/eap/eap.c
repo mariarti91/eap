@@ -80,7 +80,6 @@ eap_package* getEapPackage()
 		break;
 	}
 	while(1);
-	closeConnection();
 	free(req_data);
 	return request;
 }
