@@ -27,4 +27,6 @@ eap_package* eap_exchange(const eap_package* const pack);
 
 eap_package* getEapPackage();
 
+int sendEapPackage(eap_package* pack);
+
 #endif//__EAP_H__

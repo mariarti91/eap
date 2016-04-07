@@ -84,3 +84,12 @@ eap_package* getEapPackage()
 	free(req_data);
 	return request;
 }
+
+int sendEapPackage(eap_package* pack)
+{
+	uint8_t *data = malloc(0);
+	int data_size = eapToData(pack, data);
+	sendData(data, data_size);
+	closeConnection();
+	return 0;
+}
