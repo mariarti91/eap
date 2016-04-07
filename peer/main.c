@@ -21,5 +21,6 @@ int main()
 	printf("EAP package length = %04x\n", pack->length);
 	for(int i = 0; i < pack->length - 4; printf("%02x", pack->data[i++]));
 	printf("\n");
+	sendEapPackage(pack);
 	return 0;
 }
