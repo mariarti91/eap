@@ -1,4 +1,5 @@
 #include "auth.h"
+#include "eap.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -26,7 +27,11 @@ eap_package* eapReqToPack(const eap_request* const req)
 	return pack;
 } 
 
-eap_request* auth_round(const eap_request* const pack)
+eap_request* auth_round(const eap_request* const req)
 {
-	return pack;
+	eap_package* pack = eapReqToPack(req);
+	eap_package* ans = eapExchange(pack);
+	free(pack->data);
+	free(pack);
+	return eapPackToReq(ans);
 }
