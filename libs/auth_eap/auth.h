@@ -15,5 +15,7 @@ typedef struct
 eap_request* eapPackToReq(const eap_package* const pack);
 eap_package* eapReqToPack(const eap_request* const req);
 eap_request* auth_round(const eap_request* const req);
+eap_request* getEapRequest();
+int sendEapRequest(const eap_request* const req);
 
 #endif//__AUTH_EAP_H__

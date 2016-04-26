@@ -35,3 +35,21 @@ eap_request* auth_round(const eap_request* const req)
 	free(pack);
 	return eapPackToReq(ans);
 }
+
+eap_request* getEapRequest()
+{
+	eap_package* pack = getEapPackage();
+	eap_request* req = eapPackToReq(pack);
+	free(pack->data);
+	free(pack);
+	return req;
+}
+
+int sendEapRequest(const eap_request* const req)
+{
+	eap_package* pack = eapReqToPack(req);
+	int r = sendEapPackage(pack);
+	free(pack->data);
+	free(pack);
+	return r;
+}
