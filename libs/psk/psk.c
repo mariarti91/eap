@@ -3,10 +3,34 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #include "auth.h"
 #include "lower.h"
+#include "aes128.h"
 
+uint8_t PSK[16] = {0xdd};
+uint8_t AK[16] = {0};
+uint8_t KDK[16] = {0};
+
+void keysSettings()
+{
+	int w[44] = {0};
+	keyExpansion(PSK, w);
+	uint8_t c0[16] = {0};
+	uint8_t buf[16] = {0};
+	encript_block(c0, buf, w);
+	uint8_t c1[16] = {0};
+	c1[15] = 0x01;
+	for (int i = 0; i < 15; i++)
+		c1[i] = c1[i] ^ buf[i];
+	encript_block(c1, AK, w);
+	uint8_t c2[16] = {0};
+	c2[15] = 0x02;
+	for(int i = 0; i < 15; i++)
+		c2[i] = c2[i] ^ buf[i];
+	encript_block(c2, KDK, w);
+}
 
 int startAuth()
 {

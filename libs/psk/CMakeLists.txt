@@ -4,7 +4,7 @@ project(psk)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c11")
 
-set(SOURCE_LIB psk.c)
+set(SOURCE_LIB psk.c aes128.c)
 
 include_directories(../lower)
 include_directories(../eap)
