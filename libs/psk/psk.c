@@ -83,6 +83,7 @@ void waitAuth()
 {
 	keysSettings();
 	startListener(9090);
+	printf("Fire EAP message\n");
 	eap_request *pack = getEapRequest();
 	printf("EAP package code = %02x\n", pack->code);
 	printf("EAP package identifier = %02x\n", pack->identifier);
@@ -90,5 +91,17 @@ void waitAuth()
 	printf("EAP package type = %02x\n", pack->type);
 	for(int i = 0; i < pack->length - 5; printf("%02x", pack->type_data[i++]));
 	printf("\n");
+	uint8_t rand_s[16];
+	memcpy(&rand_s[0], &pack->type_data[1], 16);
+	uint8_t id_s = pack->type_data[17];
+	uint8_t id_p = 0x22;
+	uint8_t rand_p[16];
+	srand(time(NULL));
+	for(int i = 0; i < 16; rand_p[i++] = rand() % 0x100);
+	printf("RAND_P: ");
+	for(int i = 0; i < 16; printf("%02x", rand_p[i++]));
+	printf("\n");
+	uint8_t flags = 0x40;
 	sendEapRequest(pack);
+	
 }
