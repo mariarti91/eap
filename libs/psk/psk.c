@@ -9,6 +9,7 @@
 #include "auth.h"
 #include "lower.h"
 #include "aes128.h"
+#include "aescmac.h"
 
 uint8_t PSK[16] = {0xdd};
 uint8_t AK[16] = {0};
@@ -69,6 +70,7 @@ int startAuth()
 
 	eap_request *res = auth_round(&eapPack);
 
+	printf("SECOND MESSAGE:\n");
 	printf("Response code = %02x\n", res->code);
 	printf("Response identifier = %02x\n", res->identifier);
 	printf("Response package length = %04x\n", res->length);
@@ -102,6 +104,32 @@ void waitAuth()
 	for(int i = 0; i < 16; printf("%02x", rand_p[i++]));
 	printf("\n");
 	uint8_t flags = 0x40;
-	sendEapRequest(pack);
-	
+	eap_request res;
+	res.code = 2;
+	res.identifier = pack->identifier;
+	res.type = pack->type;
+	res.type_data = malloc(50);
+	res.type_data[0] = flags;
+	memcpy(&res.type_data[1], &rand_s[0], 16);
+	memcpy(&res.type_data[17], &rand_p[0], 16);
+	initCMAC(AK);
+	uint8_t mac_p[16];
+	uint8_t *mac_data = malloc(34);
+	mac_data[0] = id_p;
+	mac_data[1] = id_s;
+	memcpy(&mac_data[2], &rand_s[0], 16);
+	memcpy(&mac_data[18], &rand_p[0], 16);
+	getCMAC(mac_data, 34, mac_p);
+	free(mac_data);
+	memcpy(&res.type_data[33], &mac_p[0], 16);
+	res.type_data[49] = id_p;
+	res.length = 55;
+	printf("Second EAP message:\n");
+	printf("EAP package code = %02x\n", res.code);
+	printf("EAP package identifier = %02x\n", res.identifier);
+	printf("EAP package length = %04x\n", res.length);
+	printf("EAP package type = %02x\n", res.type);
+	for(int i = 0; i < res.length - 5; printf("%02x", res.type_data[i++]));
+	printf("\n");
+	sendEapRequest(&res);	
 }
