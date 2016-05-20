@@ -25,4 +25,4 @@ set_property(TARGET eap PROPERTY IMPORTED_LOCATION ../../libs/libeap.a)
 add_library(lower STATIC IMPORTED)
 set_property(TARGET lower PROPERTY IMPORTED_LOCATION ../../libs/liblower.a)
 
-target_link_libraries(eap_peer.elf psk auth eap lower)
+target_link_libraries(eap_peer.elf psk auth eap lower m)
