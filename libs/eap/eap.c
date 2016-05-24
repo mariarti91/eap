@@ -39,11 +39,11 @@ eap_package* eapExchange(const eap_package* const pack)
 {
 	uint8_t exchange_id = pack->identifier;
 	initLower();
-	uint8_t *requ_data = malloc(0);
+	uint8_t *requ_data = malloc(1080);
 	int request_size = eapToData(pack, requ_data);
 
-	uint8_t *resp_data = malloc(0);
-	eap_package *response = malloc(0);
+	uint8_t *resp_data = malloc(1080);
+	eap_package *response = malloc(sizeof(eap_package));
 	
 	do
 	{
@@ -66,8 +66,8 @@ eap_package* eapExchange(const eap_package* const pack)
 eap_package* getEapPackage()
 {
 	waitingForConnection();
-	uint8_t *req_data = malloc(0);
-	eap_package *request = malloc(0);
+	uint8_t *req_data = malloc(1080);
+	eap_package *request = malloc(sizeof(eap_package));
 
 	do
 	{
@@ -86,7 +86,7 @@ eap_package* getEapPackage()
 
 int sendEapPackage(eap_package* pack)
 {
-	uint8_t *data = malloc(0);
+	uint8_t *data = malloc(1080);
 	int data_size = eapToData(pack, data);
 	sendData(data, data_size);
 	closeConnection();
