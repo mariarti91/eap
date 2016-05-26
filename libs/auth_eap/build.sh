@@ -1,7 +1,5 @@
 #!/bin/bash
 
-mkdir tmp
-
 cd tmp
 cmake ../
 make
@@ -9,4 +7,3 @@ make
 mv libauth.a ../../
 
 cd ..
-rm -rf tmp
