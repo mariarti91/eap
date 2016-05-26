@@ -78,6 +78,33 @@ int startAuth()
 	printf("Response payload: ");
 	for(int i = 0; i < res->length - 5; printf("%02x", res->type_data[i++]));
 	printf("\n");
+
+	uint8_t rand_p[16];
+	memcpy(&rand_p[0], &res->type_data[17], 16);
+	printf("GETTED RAND_P: ");
+	for(int i = 0; i < 16; printf("%02x", rand_p[i++]));
+	printf("\n");
+	uint8_t id_p = res->type_data[res->length - 6];
+	printf("GETTED ID_P: %02x\n", id_p);
+	
+	initCMAC(AK);
+	uint8_t getted_mac_p[16];
+	memcpy(&getted_mac_p[0], &res->type_data[33], 16);
+	printf("GETTED MAC P: ");
+	for(int i = 0; i < 16; printf("%02x", getted_mac_p[i++]));
+	printf("\n");
+	uint8_t *mac_data = malloc(34);
+	mac_data[0] = id_p;
+	mac_data[1] = id_s;
+	memcpy(&mac_data[2], &rand_s[0], 16);
+	memcpy(&mac_data[18], &rand_p[0], 16);
+	uint8_t calc_mac_p[16];
+	getCMAC(mac_data, 34, calc_mac_p);
+	free(mac_data);
+	printf("CALC MAC P: ");
+	for(int i = 0; i < 16; printf("%02x", calc_mac_p[i++]));
+	printf("\n");
+
 	return 0;
 }
 
