@@ -4,3 +4,6 @@
 
 */tmp/*
 libs/*/tmp
+
+*.exe
+*.stackdump
