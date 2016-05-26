@@ -1,3 +1,6 @@
 *.elf
 
 *.a
+
+*/tmp/*
+libs/*/tmp
