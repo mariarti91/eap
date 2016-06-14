@@ -10,6 +10,7 @@
 #include "lower.h"
 #include "aes128.h"
 #include "aescmac.h"
+#include <netinet/in.h>
 
 uint8_t PSK[16] = {0xdd};
 uint8_t AK[16] = {0};
@@ -137,7 +138,7 @@ int startAuth()
 
 	eapPack.code = EAP_REQUEST;
 	eapPack.identifier = identifier++;
-	eapPack.length = 60;
+	eapPack.length = 59;
 	eapPack.type = 0xff;
 	eapPack.type_data = malloc(54);
 	eapPack.type_data[0] = 0x80;
@@ -172,7 +173,12 @@ int startAuth()
 	printf("Reqyest type data: ");
 	for(int i = 0; i < eapPack.length - 5; printf("%02x", eapPack.type_data[i++]));
 	printf("\nEND\n");
-	eap_request *res2 = auth_round(&eapPack);
+	free(res);
+	res = auth_round(&eapPack);
+	printf("Checking auth from peer... ");
+	uint8_t indec = ((res->type_data[res->length - 6]) & 0xc0);
+	if (indec == 0xc0) printf("OK\n");
+	else printf("FAIL!\n");
 	return 0;
 }
 
@@ -227,12 +233,85 @@ void waitAuth()
 	for(int i = 0; i < res.length - 5; printf("%02x", res.type_data[i++]));
 	printf("\n");
 	sendEapRequest(&res);
+	free(pack);
+
 	printf("Third EAP message:\n");
-	eap_request *pack2 = getEapRequest();	
-	printf("EAP package code = %02x\n", pack2->code);
-	printf("EAP package identifier = %02x\n", pack2->identifier);
-	printf("EAP package length = %04x\n", pack2->length);
-	printf("EAP package type = %02x\n", pack2->type);
-	for(int i = 0; i < pack2->length - 5; printf("%02x", pack2->type_data[i++]));
+	pack = getEapRequest();	
+	printf("EAP package code = %02x\n", pack->code);
+	printf("EAP package identifier = %02x\n", pack->identifier);
+	printf("EAP package length = %04x\n", pack->length);
+	printf("EAP package type = %02x\n", pack->type);
+	for(int i = 0; i < pack->length - 5; printf("%02x", pack->type_data[i++]));
 	printf("\n");
+
+	uint8_t getted_mac_s[16];
+	memcpy(&getted_mac_s[0], &pack->type_data[17], 16);
+	mac_data = malloc(17);
+	mac_data[0] = id_s;
+	memcpy(&mac_data[1], &rand_p[0], 16);
+	initCMAC(AK);
+	uint8_t calc_mac_s[16];
+	getCMAC(mac_data, 17, calc_mac_s);
+	free(mac_data);
+	printf("Checking MAC_S... ");
+	for(int i = 0; i < 16; ++i)
+	{
+		if (calc_mac_s[i] != getted_mac_s[i])
+		{
+			printf("FAIL!\n");
+			return;
+		}
+	}
+	printf("OK\n");
+	uint8_t *PCHANNEL = malloc(pack->length - 39);
+	memcpy(&PCHANNEL[0], &pack->type_data[33], pack->length - 39);
+	uint32_t nonce;
+	memcpy(&nonce, &PCHANNEL[0], 4);
+	nonce = ntohl(nonce);	
+	keysDerive(rand_p);
+	printf("TEK: ");
+	for(int i = 0; i < 16; printf("%02x", TEK[i++]));
+	printf("\n");
+	uint8_t getted_tag[16];
+	memcpy(&getted_tag[0], &PCHANNEL[4], 16);
+	mac_data = malloc(22);
+	memcpy(&mac_data[0], pack, 5);
+	memcpy(&mac_data[5], &pack->type_data[0], 17);
+	initCMAC(TEK);
+	uint8_t calc_tag[16] = {0};
+	getCMAC(mac_data, 22, calc_tag);
+	free(mac_data);
+	printf("Checking Tag... ");
+	for(int i = 0; i < 16; ++i)
+	{
+		if (getted_tag[i] != calc_tag[i])
+		{
+			printf("FAIL!\n");
+			return;
+		}
+	}
+	printf("OK\n");
+
+	res.code = 2;
+	res.identifier = pack->identifier;
+	res.length = 42;
+	res.type = 0xff;
+	res.type_data = malloc(38);
+	res.type_data[0] = 0xc0;
+	memcpy(&res.type_data[1], &rand_s[0], 16);
+	free(PCHANNEL);
+	PCHANNEL = malloc(21);
+	nonce = htonl(++nonce);
+	memcpy(&PCHANNEL[0], &nonce, 4);
+	mac_data = malloc(22);
+	memcpy(&mac_data[0], &res, 5);
+	memcpy(&mac_data[5], &res.type_data[0], 17);
+	initCMAC(TEK);
+	uint8_t tag[16] = {0};
+	getCMAC(mac_data, 22, tag);
+	free(mac_data);
+	memcpy(&PCHANNEL[4], &tag[0], 16);
+	PCHANNEL[20] = 0x80;
+	memcpy(&res.type_data[17], &PCHANNEL[0], 21);
+	sendEapRequest(&res);
 }
