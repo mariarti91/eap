@@ -14,6 +14,7 @@
 uint8_t PSK[16] = {0xdd};
 uint8_t AK[16] = {0};
 uint8_t KDK[16] = {0};
+uint8_t TEK[16] = {0};
 
 uint8_t identifier = 0;
 
@@ -34,6 +35,21 @@ void keysSettings()
 	for(int i = 0; i < 16; i++)
 		c2[i] = c2[i] ^ buf[i];
 	encript_block(c2, KDK, w);
+}
+
+void keysDerive(uint8_t rand[16])
+{
+	printf("Derivatig keys... ");
+	int w[44] = {0};
+	keyExpansion(KDK, w);
+	uint8_t buf[16] = {0};
+	encript_block(rand, buf, w);
+	uint8_t c[16] = {0};
+	c[15] = 0x01;
+	for(int i = 0; i < 16; ++i)
+		buf[i] ^= c[i];
+	encript_block(buf, TEK, w);
+	printf("OK\n");
 }
 
 int startAuth()
@@ -104,7 +120,59 @@ int startAuth()
 	printf("CALC MAC P: ");
 	for(int i = 0; i < 16; printf("%02x", calc_mac_p[i++]));
 	printf("\n");
+	printf("Checking cmak... ");
+	for(int i = 0; i < 16; i++)
+	{
+		if (getted_mac_p[i] != calc_mac_p[i])
+		{
+			printf("ERROR!\n");
+			return -1;
+		}
+	}
+	printf("OK\n");
+	keysDerive(rand_p);
+	printf("TEK: ");
+	for(int i = 0; i < 16; printf("%02x", TEK[i++]));
+	printf("\n");
 
+	eapPack.code = EAP_REQUEST;
+	eapPack.identifier = identifier++;
+	eapPack.length = 60;
+	eapPack.type = 0xff;
+	eapPack.type_data = malloc(54);
+	eapPack.type_data[0] = 0x80;
+	memcpy(&eapPack.type_data[1], &rand_s[0], 16);
+	uint8_t mac_s[16];
+	mac_data = malloc(17);
+	mac_data[0] = id_s;
+	memcpy(&mac_data[1], &rand_p[0], 16);
+	initCMAC(AK);
+	getCMAC(mac_data, 17, mac_s);
+	free(mac_data);
+	memcpy(&eapPack.type_data[17], &mac_s[0], 16);
+	uint8_t* PCHANNEL = malloc(21);
+	uint8_t nonce[4] = {0};
+	memcpy(&PCHANNEL[0], &nonce[0], 4);
+	mac_data = malloc(22);
+	memcpy(&mac_data[0], &eapPack, 5);
+	memcpy(&mac_data[5], &eapPack.type_data[0], 17);
+	initCMAC(TEK);
+	uint8_t tag[16] = {0};
+	getCMAC(mac_data, 22, tag);
+	free(mac_data);
+	memcpy(&PCHANNEL[4], &tag[0], 16);
+	PCHANNEL[20] = 0x80;
+	
+	memcpy(&eapPack.type_data[33], &PCHANNEL[0], 21);
+	printf("THIRD MESSAGE:\n");
+	printf("Request code = %02x\n", eapPack.code);
+	printf("Request identifier = %02x\n", eapPack.identifier);
+	printf("Request length = %04x\n", eapPack.length);
+	printf("Request type = %02x\n", eapPack.type);
+	printf("Reqyest type data: ");
+	for(int i = 0; i < eapPack.length - 5; printf("%02x", eapPack.type_data[i++]));
+	printf("\nEND\n");
+	eap_request *res2 = auth_round(&eapPack);
 	return 0;
 }
 
@@ -158,5 +226,13 @@ void waitAuth()
 	printf("EAP package type = %02x\n", res.type);
 	for(int i = 0; i < res.length - 5; printf("%02x", res.type_data[i++]));
 	printf("\n");
-	sendEapRequest(&res);	
+	sendEapRequest(&res);
+	printf("Third EAP message:\n");
+	eap_request *pack2 = getEapRequest();	
+	printf("EAP package code = %02x\n", pack2->code);
+	printf("EAP package identifier = %02x\n", pack2->identifier);
+	printf("EAP package length = %04x\n", pack2->length);
+	printf("EAP package type = %02x\n", pack2->type);
+	for(int i = 0; i < pack2->length - 5; printf("%02x", pack2->type_data[i++]));
+	printf("\n");
 }
